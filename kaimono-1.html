@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>おかいものメモ</title>
+<link href="https://fonts.googleapis.com/css2?family=Kaisei+Decol:wght@400;700&family=Noto+Sans+JP:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --cream: #fdf6ee;
+    --warm: #f5e6d3;
+    --peach: #f0c9a0;
+    --rose: #e8a598;
+    --red: #d4615a;
+    --brown: #7a4f3a;
+    --dark: #3d2314;
+    --green: #7aab7a;
+    --green-light: #e8f5e8;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+  body {
+    background: var(--cream);
+    font-family: 'Noto Sans JP', sans-serif;
+    min-height: 100vh;
+    padding-bottom: 100px;
+  }
+
+  /* Header */
+  .header {
+    background: linear-gradient(135deg, var(--rose) 0%, var(--peach) 100%);
+    padding: 28px 20px 20px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: 0 4px 20px rgba(212,97,90,0.2);
+    overflow: hidden;
+    width: 100%;
+  }
+
+  .header-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 14px;
+  }
+
+  .app-title {
+    font-family: 'Kaisei Decol', serif;
+    font-size: 1.6rem;
+    color: var(--dark);
+    letter-spacing: 0.05em;
+  }
+
+  .app-title span {
+    font-size: 1.2rem;
+    margin-right: 6px;
+  }
+
+  .counter-badge {
+    background: var(--dark);
+    color: var(--cream);
+    font-size: 0.75rem;
+    font-weight: 500;
+    padding: 4px 12px;
+    border-radius: 20px;
+    letter-spacing: 0.03em;
+  }
+
+  /* Input area */
+  .input-row {
+    display: flex;
+    gap: 8px;
+    width: 100%;
+    overflow: hidden;
+  }
+
+  .input-wrap {
+    flex: 1;
+    min-width: 0;
+    background: rgba(255,255,255,0.7);
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    padding: 0 10px;
+    backdrop-filter: blur(10px);
+    overflow: hidden;
+  }
+
+  .main-input {
+    flex: 1;
+    min-width: 0;
+    border: none;
+    background: transparent;
+    font-family: 'Noto Sans JP', sans-serif;
+    font-size: 1rem;
+    color: var(--dark);
+    padding: 12px 0;
+    outline: none;
+  }
+
+  .main-input::placeholder { color: #c4a090; }
+
+  .qty-input {
+    width: 44px;
+    flex-shrink: 0;
+    border: none;
+    background: transparent;
+    font-family: 'Noto Sans JP', sans-serif;
+    font-size: 0.85rem;
+    color: var(--brown);
+    text-align: center;
+    outline: none;
+    border-left: 1px solid rgba(122,79,58,0.15);
+    padding: 12px 2px;
+  }
+
+  .add-btn {
+    background: var(--dark);
+    color: var(--cream);
+    border: none;
+    border-radius: 14px;
+    width: 48px;
+    height: 48px;
+    font-size: 1.5rem;
+    cursor: pointer;
+    transition: transform 0.15s, background 0.15s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .add-btn:active { transform: scale(0.92); background: var(--red); }
+
+  /* Category tabs */
+  .tabs-wrap {
+    padding: 14px 16px 0;
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .tabs-wrap::-webkit-scrollbar { display: none; }
+
+  .tab {
+    flex-shrink: 0;
+    padding: 7px 16px;
+    border-radius: 20px;
+    border: 1.5px solid var(--peach);
+    background: transparent;
+    font-family: 'Noto Sans JP', sans-serif;
+    font-size: 0.82rem;
+    color: var(--brown);
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap;
+  }
+
+  .tab.active {
+    background: var(--dark);
+    border-color: var(--dark);
+    color: var(--cream);
+  }
+
+  /* List */
+  .list-container { padding: 16px; }
+
+  .category-section { margin-bottom: 20px; }
+
+  .category-label {
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: var(--brown);
+    letter-spacing: 0.08em;
+    margin-bottom: 8px;
+    padding-left: 4px;
+    text-transform: uppercase;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .category-label::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--peach);
+  }
+
+  .item-card {
+    background: white;
+    border-radius: 16px;
+    padding: 14px 16px;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    box-shadow: 0 2px 8px rgba(122,79,58,0.08);
+    transition: transform 0.2s, opacity 0.3s;
+    animation: slideIn 0.25s ease;
+  }
+
+  @keyframes slideIn {
+    from { opacity: 0; transform: translateY(-8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .item-card.done {
+    background: var(--green-light);
+    opacity: 0.7;
+  }
+
+  .check-btn {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    border: 2px solid var(--peach);
+    background: transparent;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+    flex-shrink: 0;
+    font-size: 0.9rem;
+  }
+
+  .item-card.done .check-btn {
+    background: var(--green);
+    border-color: var(--green);
+    color: white;
+  }
+
+  .item-info { flex: 1; min-width: 0; }
+
+  .item-name {
+    font-size: 1rem;
+    color: var(--dark);
+    font-weight: 400;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .item-card.done .item-name {
+    text-decoration: line-through;
+    color: var(--green);
+  }
+
+  .item-qty {
+    font-size: 0.78rem;
+    color: var(--brown);
+    margin-top: 2px;
+    opacity: 0.8;
+  }
+
+  .item-cat-tag {
+    font-size: 0.7rem;
+    padding: 2px 8px;
+    border-radius: 10px;
+    background: var(--warm);
+    color: var(--brown);
+    flex-shrink: 0;
+  }
+
+  .del-btn {
+    background: none;
+    border: none;
+    color: #ccc;
+    font-size: 1.1rem;
+    cursor: pointer;
+    padding: 4px;
+    transition: color 0.2s;
+    flex-shrink: 0;
+  }
+  .del-btn:active { color: var(--red); }
+
+  /* Empty state */
+  .empty {
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--peach);
+  }
+  .empty-icon { font-size: 3rem; margin-bottom: 12px; }
+  .empty-text { font-size: 0.9rem; color: var(--brown); opacity: 0.6; }
+
+  /* Bottom bar */
+  .bottom-bar {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: white;
+    border-top: 1px solid var(--warm);
+    padding: 12px 20px 20px;
+    display: flex;
+    gap: 10px;
+    z-index: 100;
+    box-shadow: 0 -4px 20px rgba(122,79,58,0.1);
+  }
+
+  .bottom-btn {
+    flex: 1;
+    padding: 12px;
+    border-radius: 12px;
+    border: none;
+    font-family: 'Noto Sans JP', sans-serif;
+    font-size: 0.85rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .clear-done-btn {
+    background: var(--green-light);
+    color: var(--green);
+  }
+
+  .clear-all-btn {
+    background: var(--warm);
+    color: var(--brown);
+  }
+
+  .bottom-btn:active { transform: scale(0.96); }
+
+  /* Cat selector */
+  .cat-selector {
+    display: flex;
+    gap: 6px;
+    overflow-x: auto;
+    scrollbar-width: none;
+    padding-bottom: 2px;
+    margin-top: 10px;
+  }
+  .cat-selector::-webkit-scrollbar { display: none; }
+
+  .cat-pill {
+    flex-shrink: 0;
+    padding: 5px 12px;
+    border-radius: 20px;
+    border: 1.5px solid rgba(255,255,255,0.5);
+    background: rgba(255,255,255,0.35);
+    font-size: 0.78rem;
+    color: var(--dark);
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap;
+  }
+
+  .cat-pill.selected {
+    background: white;
+    border-color: white;
+    font-weight: 500;
+  }
+
+  .progress-bar-wrap {
+    background: rgba(255,255,255,0.3);
+    border-radius: 4px;
+    height: 4px;
+    margin-top: 10px;
+    overflow: hidden;
+  }
+
+  .progress-bar {
+    height: 100%;
+    background: var(--dark);
+    border-radius: 4px;
+    transition: width 0.4s ease;
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-top">
+    <div class="app-title"><span>🛒</span>おかいものメモ</div>
+    <div class="counter-badge" id="counterBadge">0 / 0</div>
+  </div>
+  <div class="input-row">
+    <div class="input-wrap">
+      <input class="main-input" id="itemInput" type="text" placeholder="商品名を入力…" maxlength="30">
+      <input class="qty-input" id="qtyInput" type="text" placeholder="個数" maxlength="6">
+    </div>
+    <button class="add-btn" onclick="addItem()">＋</button>
+  </div>
+  <div class="cat-selector" id="catSelector"></div>
+  <div class="progress-bar-wrap">
+    <div class="progress-bar" id="progressBar" style="width:0%"></div>
+  </div>
+</div>
+
+<div class="tabs-wrap" id="tabsWrap">
+  <button class="tab active" onclick="filterTab('all', this)">すべて</button>
+  <button class="tab" onclick="filterTab('pending', this)">未購入</button>
+  <button class="tab" onclick="filterTab('done', this)">購入済み</button>
+</div>
+
+<div class="list-container" id="listContainer"></div>
+
+<div class="bottom-bar">
+  <button class="bottom-btn clear-done-btn" onclick="clearDone()">✓ 購入済みを消す</button>
+  <button class="bottom-btn clear-all-btn" onclick="clearAll()">全て消す</button>
+</div>
+
+<script>
+const CATS = [
+  { id: 'yasai', label: '🥦 野菜・果物' },
+  { id: 'niku', label: '🥩 肉・魚' },
+  { id: 'reito', label: '🧊 冷凍・乳製品' },
+  { id: 'kashi', label: '🍰 お菓子・飲み物' },
+  { id: 'chomi', label: '🧂 調味料' },
+  { id: 'nichiyohin', label: '🧴 日用品' },
+  { id: 'other', label: '📦 その他' },
+];
+
+let items = JSON.parse(localStorage.getItem('kaimono') || '[]');
+let selectedCat = 'other';
+let filterMode = 'all';
+
+// Build category selector
+const catSel = document.getElementById('catSelector');
+CATS.forEach(c => {
+  const el = document.createElement('button');
+  el.className = 'cat-pill' + (c.id === selectedCat ? ' selected' : '');
+  el.textContent = c.label;
+  el.onclick = () => {
+    selectedCat = c.id;
+    document.querySelectorAll('.cat-pill').forEach(p => p.classList.remove('selected'));
+    el.classList.add('selected');
+  };
+  catSel.appendChild(el);
+});
+
+function save() {
+  localStorage.setItem('kaimono', JSON.stringify(items));
+}
+
+function addItem() {
+  const name = document.getElementById('itemInput').value.trim();
+  if (!name) return;
+  const qty = document.getElementById('qtyInput').value.trim() || '';
+  items.unshift({ id: Date.now(), name, qty, cat: selectedCat, done: false });
+  document.getElementById('itemInput').value = '';
+  document.getElementById('qtyInput').value = '';
+  save();
+  render();
+  document.getElementById('itemInput').focus();
+}
+
+document.getElementById('itemInput').addEventListener('keydown', e => {
+  if (e.key === 'Enter') addItem();
+});
+
+function toggleItem(id) {
+  const item = items.find(i => i.id === id);
+  if (item) { item.done = !item.done; save(); render(); }
+}
+
+function deleteItem(id) {
+  items = items.filter(i => i.id !== id);
+  save(); render();
+}
+
+function clearDone() {
+  if (!items.some(i => i.done)) return;
+  items = items.filter(i => !i.done);
+  save(); render();
+}
+
+function clearAll() {
+  if (!items.length) return;
+  if (confirm('全て消しますか？')) { items = []; save(); render(); }
+}
+
+function filterTab(mode, el) {
+  filterMode = mode;
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  render();
+}
+
+function getCatLabel(id) {
+  return CATS.find(c => c.id === id)?.label || '📦 その他';
+}
+
+function render() {
+  const done = items.filter(i => i.done).length;
+  const total = items.length;
+  document.getElementById('counterBadge').textContent = `${done} / ${total}`;
+  const pct = total ? Math.round(done / total * 100) : 0;
+  document.getElementById('progressBar').style.width = pct + '%';
+
+  let visible = items;
+  if (filterMode === 'pending') visible = items.filter(i => !i.done);
+  if (filterMode === 'done') visible = items.filter(i => i.done);
+
+  const container = document.getElementById('listContainer');
+
+  if (!visible.length) {
+    container.innerHTML = `<div class="empty"><div class="empty-icon">🛍️</div><div class="empty-text">アイテムがありません</div></div>`;
+    return;
+  }
+
+  // Group by category
+  const grouped = {};
+  visible.forEach(item => {
+    if (!grouped[item.cat]) grouped[item.cat] = [];
+    grouped[item.cat].push(item);
+  });
+
+  let html = '';
+  CATS.forEach(cat => {
+    if (!grouped[cat.id]) return;
+    html += `<div class="category-section">`;
+    html += `<div class="category-label">${cat.label}</div>`;
+    grouped[cat.id].forEach(item => {
+      html += `
+        <div class="item-card ${item.done ? 'done' : ''}" id="card-${item.id}">
+          <button class="check-btn" onclick="toggleItem(${item.id})">${item.done ? '✓' : ''}</button>
+          <div class="item-info">
+            <div class="item-name">${escHtml(item.name)}</div>
+            ${item.qty ? `<div class="item-qty">${escHtml(item.qty)}</div>` : ''}
+          </div>
+          <button class="del-btn" onclick="deleteItem(${item.id})">✕</button>
+        </div>`;
+    });
+    html += `</div>`;
+  });
+
+  container.innerHTML = html;
+}
+
+function escHtml(s) {
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+render();
+</script>
+</body>
+</html>
